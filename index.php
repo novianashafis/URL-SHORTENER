@@ -18,7 +18,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $sql = "INSERT INTO links (short_code, long_url) VALUES ('$short_code', '$long_url')";
     mysqli_query($conn, $sql);
 
-    $short_url = "http://dijumper.my.id/$short_code";
+    $short_url = "https://dijumper.my.id/$short_code";
 }
 ?>
 

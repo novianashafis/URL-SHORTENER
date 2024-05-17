@@ -23,10 +23,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <!DOCTYPE html>
 <html>
 <head>
+    <meTa charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>URL Shortener</title>
 </head>
 <body>
     <h1>URL Shortener</h1>
+    <h4>Project by Dijumper<h4>
     <form method="POST">
         <input type="url" name="long_url" placeholder="Masukkan URL panjang" required>
         <button type="submit">Shorten</button>

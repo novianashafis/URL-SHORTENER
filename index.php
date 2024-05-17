@@ -1,41 +1,47 @@
 <?php
-// Koneksi ke database
-$db_host = "localhost"; // Host database Anda
-$db_name = "dijumper_shorten"; // Nama database Anda
-$db_user = "USERNAME"; // Nama pengguna database Anda
-$db_pass = "PASSWORD"; // Kata sandi database Anda
+// Set header untuk memberitahu bahwa ini adalah JSON
+header('Content-Type: application/json');
 
-$conn = mysqli_connect($db_host, $db_user, $db_pass, $db_name);
+// Jika metode HTTP adalah POST
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+  	// Ambil data dari permintaan (misalnya, dari body POST)
+	$data = json_decode(file_get_contents('php://input'), true);
+  
+    // Ambil data dari permintaan POST
+    $longUrl = $data['long'];
+    $shortCode = $data['code'];
+  
+    // Koneksi ke database (sesuaikan dengan informasi koneksi Anda)
+    // Menyertakan file db_config.php
+    require_once("db_config.php");
 
-// Menangani pengiriman formulir
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $long_url = $_POST["long_url"];
+    // Buat koneksi
+    $conn = new mysqli($db_host, $db_user, $db_pass, $db_name);
 
-    // Menghasilkan kode pendek
-    $short_code = substr(md5(time() . $long_url), 0, 6);
+    // Cek koneksi
+    if ($conn->connect_error) {
+        die("Koneksi database gagal: " . $conn->connect_error);
+    }
 
-    // Menyisipkan ke database
-    $sql = "INSERT INTO links (short_code, long_url) VALUES ('$short_code', '$long_url')";
-    mysqli_query($conn, $sql);
+    // Buat dan jalankan perintah SQL untuk menyimpan data ke tabel links
+    $sql = "INSERT INTO links (short_code, long_url) VALUES ('$shortCode', '$longUrl')";
+  
+  	// URL Short
+	$short_url = "https://phy.my.id/$shortCode";
+  
+    if ($conn->query($sql) === TRUE) {
+        $response = ['message' => $short_url];
+    } else {
+        $response = ['message' => 'Error: ' . $sql . '<br>' . $conn->error];
+    }
 
-    $short_url = "https://dijumper.my.id/$short_code";
+    // Tutup koneksi database
+    $conn->close();
+} else {
+    // Jika metode HTTP bukan POST, kirim respons metode tidak didukung
+    $response = ['message' => 'Metode tidak didukung'];
 }
+
+// Ubah respons ke format JSON dan kirimkan kembali
+echo json_encode($response);
 ?>
-
-<!DOCTYPE html>
-<html>
-<head>
-    <title>URL Shortener</title>
-</head>
-<body>
-    <h1>URL Shortener</h1>
-    <form method="POST">
-        <input type="url" name="long_url" placeholder="Masukkan URL panjang" required>
-        <button type="submit">Shorten</button>
-    </form>
-
-    <?php if (isset($short_url)) { ?>
-        <p>URL pendek Anda: <a href="<?php echo $short_url; ?>"><?php echo $short_url; ?></a></p>
-    <?php } ?>
-</body>
-</html>

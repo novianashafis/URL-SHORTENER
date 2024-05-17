@@ -23,18 +23,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         die("Koneksi database gagal: " . $conn->connect_error);
     }
 
-    // Buat dan jalankan perintah SQL untuk menyimpan data ke tabel links
-    $sql = "INSERT INTO links (short_code, long_url) VALUES ('$shortCode', '$longUrl')";
-  
-  	// URL Short
-	$short_url = "https://phy.my.id/$shortCode";
-  
-    if ($conn->query($sql) === TRUE) {
+    // Buat pernyataan prepared untuk menyimpan data ke tabel links
+    $stmt = $conn->prepare("INSERT INTO links (short_code, long_url) VALUES (?, ?)");
+
+    // Bind parameter ke pernyataan prepared
+    $stmt->bind_param("ss", $shortCode, $longUrl);
+
+    // Jalankan pernyataan prepared
+    if ($stmt->execute()) {
+        // URL Short
+        $short_url = "https://phy.my.id/$shortCode";
+      
         $response = ['message' => $short_url];
     } else {
-        $response = ['message' => 'Error: ' . $sql . '<br>' . $conn->error];
+        $response = ['message' => 'Error: ' . $stmt->error];
     }
 
+    // Tutup pernyataan prepared
+    $stmt->close();
+  
     // Tutup koneksi database
     $conn->close();
 } else {

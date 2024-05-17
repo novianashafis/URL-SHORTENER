@@ -10,17 +10,29 @@ if ($conn->connect_error) {
 
 $short_code = $_GET["code"]; // Kode pendek yang ingin Anda periksa
 
-$sql = "SELECT long_url FROM links WHERE short_code = '$short_code'"; // Memilih URL panjang yang terkait dengan kode pendek
-$result = $conn->query($sql); // Mengeksekusi kueri
+// Buat pernyataan prepared untuk memilih URL panjang berdasarkan kode pendek
+$stmt = $conn->prepare("SELECT long_url FROM links WHERE short_code = ?");
+$stmt->bind_param("s", $short_code);
 
-if ($result->num_rows > 0) { // Jika URL panjang ditemukan
-    $row = $result->fetch_assoc(); // Mengambil data dari hasil kueri
+// Jalankan pernyataan prepared
+$stmt->execute();
 
-    $long_url = $row["long_url"]; // URL panjang yang ditemukan
+// Bind hasil dari kueri ke dalam variabel
+$stmt->bind_result($long_url);
+
+// Ambil hasil kueri
+$stmt->fetch();
+
+if ($long_url) { // Jika URL panjang ditemukan
     header("Location: $long_url"); // Mengalihkan pengguna ke URL panjang
     exit(); // Menghentikan eksekusi kode
 } else { // Jika URL panjang tidak ditemukan
     echo "Short URL not found."; // Menampilkan pesan error
     exit(); // Menghentikan eksekusi kode
 }
+
+// Tutup pernyataan prepared
+$stmt->close();
+// Tutup koneksi database
+$conn->close();
 ?>
